@@ -1,22 +1,31 @@
 const Project = require("./project.model");
 
-const findByName = async (name) =>{
-    return Project.findOne({name});
+const findByName = async (name, ownerId) => {
+    return Project.findOne({ name, ownerId });
 };
 
 const create = async (data)=>{
     return Project.create(data);
 }
 
-const findAll = async ({ skip, limit, status, search }) => {
-    const filter = {};
+const findAll = async ({
+    ownerId,
+    skip,
+    limit,
+    status,
+    search
+}) => {
+    const filter = { ownerId };
 
     if (status) {
         filter.status = status;
     }
 
     if (search) {
-        const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedSearch = search.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+        );
 
         filter.name = {
             $regex: escapedSearch,
@@ -37,20 +46,22 @@ const findAll = async ({ skip, limit, status, search }) => {
     return { projects, total };
 };
 
-const updateById = async (id, data) => {
-    return Project.findByIdAndUpdate(id, data, {
-        new: true,
-        runValidators: true
-    })
-}
-
-const deleteById = async (id) => {
-    return Project.findByIdAndDelete(id);
+const updateById = async (id, ownerId, data) => {
+    return Project.findOneAndUpdate(
+        { _id: id, ownerId },
+        data,
+        { new: true, runValidators: true }
+    );
 };
-
-const findById = async (id) => {
-    return Project.findById(id);
-}
+const deleteById = async (id, ownerId) => {
+    return Project.findOneAndDelete({
+        _id: id,
+        ownerId
+    });
+};
+const findById = async (id, ownerId) => {
+    return Project.findOne({ _id: id, ownerId });
+};
 
 module.exports = {
     findByName,

@@ -34,7 +34,7 @@ router.patch(
 
 router.delete(
     "/:taskId",
-    validate(deleteTaskSchema),
+    validate(deleteTaskSchema, "params"),
     taskController.deleteTask
 );
 

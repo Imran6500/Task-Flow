@@ -2,6 +2,7 @@ const taskService = require("./task.service");
 
 const createTask = async (req, res) => {
     const task = await taskService.createTask(
+        req.user.id,
         req.params.projectId,
         req.validatedBody
     );
@@ -15,6 +16,7 @@ const createTask = async (req, res) => {
 
 const getTasksByProject = async (req, res) => {
     const result = await taskService.getTasksByProject(
+        req.user.id,
         req.params.projectId,
         req.validatedQuery
     );
@@ -28,6 +30,7 @@ const getTasksByProject = async (req, res) => {
 
 const updateTask = async (req, res) => {
     const task = await taskService.updateTask(
+        req.user.id,
         req.params.projectId,
         req.params.taskId,
         req.validatedBody
@@ -42,6 +45,7 @@ const updateTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
     await taskService.deleteTask(
+        req.user.id,
         req.params.projectId,
         req.params.taskId
     );

@@ -23,12 +23,18 @@ const projectSchema = new mongoose.Schema(
         enum:["ACTIVE", "ARCHIVED"],
         default:"ACTIVE"
     },
+    ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    immutable: true
+},
 },
 {
     timestamps:true
 }
 );
 
-projectSchema.index({ status: 1, createdAt: -1, _id: -1 });
+projectSchema.index({ status: 1, createdAt: -1, _id: -1, ownerId: 1 });
 
 module.exports = mongoose.model("Project", projectSchema);

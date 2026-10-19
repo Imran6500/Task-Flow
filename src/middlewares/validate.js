@@ -1,6 +1,10 @@
-const validate = (schema) => {
+const validate = (schema, source = "body") => {
+    if (!schema || typeof schema.safeParse !== "function") {
+        throw new Error("Invalid validation schema");
+    }
+
     return (req, res, next) => {
-        const result = schema.safeParse(req.body);
+        const result = schema.safeParse(req[source]);
 
         if (!result.success) {
             return res.status(400).json({
@@ -10,7 +14,11 @@ const validate = (schema) => {
             });
         }
 
-        req.validatedBody = result.data;
+        req.validated = {
+            ...(req.validated || {}),
+            [source]: result.data
+        };
+
         next();
     };
 };

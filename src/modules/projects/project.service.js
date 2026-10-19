@@ -1,24 +1,29 @@
 const mongoose = require("mongoose");
 const projectRepository = require("./project.repository");
+const { NotFoundError } = require("../../utils/AppError");
 
-const createProject = async (data) => {
-    const existingProject = await projectRepository.findByName(data.name);
 
-    if(existingProject){
-       const error = new Error("Project with this name already exists");
-       error.statusCode = 409;
-       throw error;
-    }
-    
-    const project = await projectRepository.create(data);
+const createProject = async (ownerId, data) => {
+   const existingProject = await projectRepository.findByName(
+       data.name,
+       ownerId
+);
 
-    return project;
+if (existingProject) {
+    throw new ConflictError("Project already exists");
+}
+
+return projectRepository.create({
+    ...data,
+    ownerId
+});
 };
 
-const getAllProjects = async ({ page, limit, status, search }) => {
+const getAllProjects = async ({ ownerId, page, limit, status, search }) => {
     const skip = (page - 1) * limit;
 
     const { projects, total } = await projectRepository.findAll({
+        ownerId,
         skip,
         limit,
         status,
@@ -36,13 +41,14 @@ const getAllProjects = async ({ page, limit, status, search }) => {
     };
 };
 
-const updateProject = async (id, data) => {
-    const project = await getProjectById(id);
+const updateProject = async (projectId, ownerId, data) => {
+    const project = await getProjectById(projectId, ownerId);
 
 
     if (data.name && data.name !== project.name) {
         const existingProject = await projectRepository.findByName(
-            data.name
+            data.name,
+            ownerId
         );
 
         if (existingProject) {
@@ -53,7 +59,8 @@ const updateProject = async (id, data) => {
     }
 
     const updatedProject = await projectRepository.updateById(
-        id,
+        projectId,
+        ownerId,
         data
     );
 
@@ -64,10 +71,10 @@ const updateProject = async (id, data) => {
     return updatedProject;
 };
 
-const deleteProject = async (id) => {
-    await getProjectById(id);
+const deleteProject = async (projectId, ownerId) => {
+    await getProjectById(projectId, ownerId);
 
-    const deletedProject = await projectRepository.deleteById(id);
+    const deletedProject = await projectRepository.deleteById(projectId, ownerId);
 
     if (!deletedProject) {
        throw new NotFoundError("Project not found");
@@ -76,14 +83,15 @@ const deleteProject = async (id) => {
     return deletedProject;
 };
 
-const getProjectById = async(id) =>{
-    if(!mongoose.isValidObjectId(id)){
+const getProjectById = async(projectId, ownerId) =>{
+    if(!mongoose.isValidObjectId(projectId)){
         const error = new Error("Invalid project ID");
          error.statusCode = 400;
         throw error;
     }
 
-    const project = await projectRepository.findById(id);
+    const project = await projectRepository.findById(projectId, ownerId);
+
 
     if(!project){
         throw new NotFoundError("Project not found");

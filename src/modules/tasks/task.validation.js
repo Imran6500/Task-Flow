@@ -30,8 +30,14 @@ const updateTaskSchema = z.object({
     { message: "At least one field is required" }
 );
 
+const deleteTaskSchema = z.object({
+    projectId: z.string().regex(/^[0-9a-fA-F]{24}$/),
+    taskId: z.string().regex(/^[0-9a-fA-F]{24}$/)
+});
+
 module.exports = {
     createTaskSchema,
     listTasksSchema,
-    updateTaskSchema
+    updateTaskSchema,
+    deleteTaskSchema
 };

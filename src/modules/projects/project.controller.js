@@ -1,7 +1,7 @@
 const projectService = require('./project.service');
 
 const createProject = async (req, res) =>{
-     const project = await projectService.createProject(req.validatedBody);
+     const project = await projectService.createProject(  req.user.id, req.validatedBody);
 
      return res.status(201).json({
         success: true,
@@ -16,6 +16,7 @@ const getAllProjects = async (req, res) => {
     const { page, limit, status, search } = req.validatedQuery;
 
     const result = await projectService.getAllProjects({
+        ownerId: req.user.id,
         page,
         limit,
         status,
@@ -30,7 +31,7 @@ const getAllProjects = async (req, res) => {
 };
 
 const getProjectById = async (req, res) => {
-    const project = await projectService.getProjectById(req.params.id);
+    const project = await projectService.getProjectById( req.params.id, req.user.id);
 
     return res.status(200).json({
         success: true,
@@ -42,6 +43,7 @@ const getProjectById = async (req, res) => {
 const updateProject = async (req, res) => {
     const project = await projectService.updateProject(
         req.params.id,
+        req.user.id,
         req.validatedBody
     );
 
@@ -53,7 +55,7 @@ const updateProject = async (req, res) => {
 };
 
 const deleteProject = async (req, res) => {
-    await projectService.deleteProject(req.params.id);
+    await projectService.deleteProject(req.params.id, req.user.id);
 
     return res.status(200).json({
         success: true,
