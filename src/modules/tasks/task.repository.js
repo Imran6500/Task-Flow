@@ -63,6 +63,10 @@ const findByIdAndProjectId = async (taskId, projectId) => {
     });
 };
 
+const existsByProjectId = async (projectId) => {
+    return Task.exists({ projectId });
+};
+
 module.exports = {
     create,
     findById,
@@ -70,4 +74,6 @@ module.exports = {
     updateById,
     deleteById,
     findByIdAndProjectId
+    ,
+    existsByProjectId
 };

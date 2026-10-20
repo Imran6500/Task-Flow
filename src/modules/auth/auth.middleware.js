@@ -25,6 +25,10 @@ const authenticate = async (req, res, next) => {
                 process.env.JWT_ACCESS_SECRET,
                 { algorithms: ["HS256"] }
             );
+
+            if (payload.type !== "access") {
+    throw new UnauthorizedError("Invalid access token");
+}
         } catch (error) {
             throw new UnauthorizedError("Invalid or expired access token");
         }

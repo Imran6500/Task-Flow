@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const projectRepository = require("./project.repository");
-const { NotFoundError } = require("../../utils/AppError");
+const { NotFoundError, ConflictError } = require("../../utils/AppError");
+const taskRepository = require("../tasks/task.repository");
 
 
 const createProject = async (ownerId, data) => {
@@ -72,12 +73,41 @@ const updateProject = async (projectId, ownerId, data) => {
 };
 
 const deleteProject = async (projectId, ownerId) => {
-    await getProjectById(projectId, ownerId);
+    if (!mongoose.isValidObjectId(projectId)) {
+        throw new BadRequestError("Invalid project ID");
+    }
 
-    const deletedProject = await projectRepository.deleteById(projectId, ownerId);
+    // Verify project exists and belongs to this user
+    const project = await projectRepository.findById(
+        projectId,
+        ownerId,
+    );
+
+    if (!project) {
+        console.log("Project not found for deletion1");
+        throw new NotFoundError("Project not found");
+    }
+
+    // Check if the project contains tasks
+    const hasTasks = await taskRepository.existsByProjectId(
+        projectId
+    );
+
+    if (hasTasks) {
+        throw new ConflictError(
+            "Cannot delete a project that contains tasks. Delete its tasks first."
+        );
+    }
+
+    // Delete only the authenticated user's project
+    const deletedProject = await projectRepository.deleteById(
+        projectId,
+        ownerId
+    );
 
     if (!deletedProject) {
-       throw new NotFoundError("Project not found");
+        console.log("Project not found for deletion2");
+        throw new NotFoundError("Project not found");
     }
 
     return deletedProject;
