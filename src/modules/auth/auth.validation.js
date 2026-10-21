@@ -11,7 +11,12 @@ const loginSchema = z.object({
     password: z.string().min(1)
 }).strict();
 
+const refreshTokenSchema = z.object({
+    refreshToken: z.string().min(1)
+}).strict();
+
 module.exports = {
     registerSchema,
-    loginSchema
+    loginSchema,
+    refreshTokenSchema
 };

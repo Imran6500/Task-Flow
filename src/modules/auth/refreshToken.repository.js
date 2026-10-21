@@ -1,3 +1,4 @@
+
 const RefreshToken = require("./refreshToken.model");
 
 const create = async (data) => {
@@ -8,6 +9,25 @@ const findByHash = async (tokenHash) => {
     return RefreshToken.findOne({ tokenHash });
 };
 
+const rotate = async (oldHash, newHash, newExpiresAt) => {
+    return RefreshToken.findOneAndUpdate(
+        {
+            tokenHash: oldHash,
+            revokedAt: null,
+            expiresAt: { $gt: new Date() }
+        },
+        {
+            $set: {
+                tokenHash: newHash,
+                expiresAt: newExpiresAt
+            }
+        },
+        {
+            new: true
+        }
+    );
+};
+
 const revokeByHash = async (tokenHash) => {
     return RefreshToken.findOneAndUpdate(
         {
@@ -15,7 +35,7 @@ const revokeByHash = async (tokenHash) => {
             revokedAt: null
         },
         {
-            revokedAt: new Date()
+            $set: { revokedAt: new Date() }
         },
         {
             new: true
@@ -30,7 +50,7 @@ const revokeAllByUserId = async (userId) => {
             revokedAt: null
         },
         {
-            revokedAt: new Date()
+            $set: { revokedAt: new Date() }
         }
     );
 };
@@ -38,6 +58,7 @@ const revokeAllByUserId = async (userId) => {
 module.exports = {
     create,
     findByHash,
+    rotate,
     revokeByHash,
     revokeAllByUserId
 };

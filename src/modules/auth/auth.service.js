@@ -1,6 +1,14 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const refreshTokenRepository = require("./refreshToken.repository");
+
+const {
+    hashToken,
+    generateAccessToken,
+    generateRefreshToken
+} = require("./token.utils");
+
 const userRepository = require("../users/user.repository");
 
 
@@ -10,19 +18,6 @@ const {
     UnauthorizedError
 } = require("../../utils/AppError");
 
-// Generate JWT access token
-const generateAccessToken = (user) => {
-    return jwt.sign(
-        {
-            sub: user._id.toString()
-        },
-        process.env.JWT_ACCESS_SECRET,
-        {
-            expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
-            algorithm: "HS256"
-        }
-    );
-};
 
 // Register a new user
 const register = async ({ name, email, password }) => {
@@ -73,16 +68,9 @@ const login = async ({ email, password }) => {
 
     if (!isPasswordValid) {
         throw new UnauthorizedError("Invalid email or password");
-        throw error;
     }
 
-    const accessToken = generateAccessToken(user);
-
-    return {
-        accessToken,
-        tokenType: "Bearer",
-        expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m"
-    };
+    return createSession(user);
 };
 
 // Get authenticated user's profile
@@ -101,8 +89,84 @@ const getProfile = async (userId) => {
     };
 };
 
+const createSession = async (user) => {
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    const decoded = jwt.decode(refreshToken);
+
+    await refreshTokenRepository.create({
+        userId: user._id,
+        tokenHash: hashToken(refreshToken),
+        expiresAt: new Date(decoded.exp * 1000)
+    });
+
+    return {
+        accessToken,
+        refreshToken,
+        tokenType: "Bearer",
+        expiresIn: "15m"
+    };
+};
+
+const refreshSession = async (refreshToken) => {
+    let payload;
+
+    try {
+        payload = jwt.verify(
+            refreshToken,
+            process.env.JWT_REFRESH_SECRET,
+            { algorithms: ["HS256"] }
+        );
+    } catch (error) {
+        throw new UnauthorizedError("Invalid or expired refresh token");
+    }
+
+    if (payload.type !== "refresh" || !payload.sub) {
+        throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    const user = await userRepository.findById(payload.sub);
+
+    if (!user) {
+        throw new UnauthorizedError("User no longer exists");
+    }
+
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    const decoded = jwt.decode(newRefreshToken);
+
+    const rotated = await refreshTokenRepository.rotate(
+        hashToken(refreshToken),
+        hashToken(newRefreshToken),
+        new Date(decoded.exp * 1000)
+    );
+
+    if (!rotated) {
+        throw new UnauthorizedError(
+            "Refresh token already used or revoked"
+        );
+    }
+
+    return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        tokenType: "Bearer",
+        expiresIn: "15m"
+    };
+};
+
+const logout = async (refreshToken) => {
+    await refreshTokenRepository.revokeByHash(
+        hashToken(refreshToken)
+    );
+};
+
 module.exports = {
     register,
     login,
-    getProfile
+    getProfile,
+    refreshSession,
+    logout
 };
