@@ -4,6 +4,7 @@ const router = express.Router();
 const authController = require("./auth.controller");
 const authenticate = require("./auth.middleware");
 const validate = require("../../middlewares/validate");
+const { authLimiter } = require("../../middlewares/rateLimit.middleware");
 
 const {
     registerSchema,
@@ -14,12 +15,14 @@ const {
 router.post(
     "/register",
     validate(registerSchema),
+    authLimiter,
     authController.register
 );
 
 router.post(
     "/login",
     validate(loginSchema),
+    authLimiter,
     authController.login
 );
 
@@ -32,6 +35,7 @@ router.get(
 router.post(
     "/refresh",
     validate(refreshTokenSchema),
+    authLimiter,
     authController.refresh
 );
 

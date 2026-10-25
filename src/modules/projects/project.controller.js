@@ -1,12 +1,12 @@
 const projectService = require('./project.service');
+const ApiResponse = require('../../utils/ApiResponse');
 
 const createProject = async (req, res) =>{
      const project = await projectService.createProject(  req.user.id, req.validatedBody);
 
-     return res.status(201).json({
-        success: true,
-        message: "Project created successfully",
-        data: project
+     return ApiResponse.success(res,{
+        message:"Project created successfully",
+        data:project
      });
 
 
@@ -23,21 +23,20 @@ const getAllProjects = async (req, res) => {
         search
     });
 
-    return res.status(200).json({
-        success: true,
+    return ApiResponse.success(res, {
+        message: "Projects fetched successfully",
         data: result.projects,
-        pagination: result.pagination
+        meta: result.pagination
     });
 };
 
 const getProjectById = async (req, res) => {
     const project = await projectService.getProjectById( req.params.id, req.user.id);
 
-    return res.status(200).json({
-        success: true,
-        message: "Project fetched successfully",
-        data: project
-    });
+    return ApiResponse.success(res, {
+        message:"Project fetched successfully",
+        data:project
+    })
 }
 
 const updateProject = async (req, res) => {
@@ -57,9 +56,8 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
     await projectService.deleteProject(req.params.id, req.user.id);
 
-    return res.status(200).json({
-        success: true,
-        message: "Project deleted successfully"
+    return ApiResponse.success(res,{
+        message:"Project deleted successfully"
     });
 };
  

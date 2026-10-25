@@ -1,27 +1,24 @@
+const ApiResponse = require("../../utils/ApiResponse");
 const authService = require("./auth.service");
 
 const register = async (req, res) => {
     const user = await authService.register(req.body);
 
-    return res.status(201).json({
-        success: true,
-        message: "User registered successfully",
-        data: user
+    return ApiResponse.success(res,{
+        message:"User registered successfully",
+        data:user
     });
 };
 
 const login = async (req, res, next) => {
     try {
-        console.log("Request body:", req.body);
-console.log("Validated body:", req.validated?.body);
         const result = await authService.login(
-            req.validated.body
+            req.validatedBody
         );
 
-        return res.status(200).json({
-            success: true,
-            message: "Login successful",
-            data: result
+        return ApiResponse.success(res,{
+          message:"Login Successful",
+          data: result
         });
     } catch (error) {
         next(error);
@@ -31,23 +28,21 @@ console.log("Validated body:", req.validated?.body);
 const getProfile = async (req, res) => {
     const user = await authService.getProfile(req.user.id);
 
-    return res.status(200).json({
-        success: true,
-        data: user
+    return ApiResponse.success(res,{
+        message:"Profile fetched successfully",
+        data:user
     });
 };
 
 const refresh = async (req, res) => {
-    console.log("Request body:", req.body.refreshToken);
     const result = await authService.refreshSession(
         req.body.refreshToken
     );
 
-    return res.status(200).json({
-        success: true,
-        message: "Session refreshed successfully",
-        data: result
-    });
+    return ApiResponse.success(res,{
+        message:"Session refreshed successfully",
+        data:result
+    })
 };
 
 const logout = async (req, res) => {
@@ -55,9 +50,8 @@ const logout = async (req, res) => {
         req.body.refreshToken
     );
 
-    return res.status(200).json({
-        success: true,
-        message: "Logged out successfully"
+    return ApiResponse.success(res,{
+        message:"Logged out successfully",
     });
 };
 

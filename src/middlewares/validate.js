@@ -1,24 +1,25 @@
-const validate = (schema, source = "body") => {
-    if (!schema || typeof schema.safeParse !== "function") {
-        throw new Error("Invalid validation schema");
-    }
 
+const { ValidationError } = require("../utils/AppError");
+
+const validate = (schema) => {
     return (req, res, next) => {
-        const result = schema.safeParse(req[source]);
+        const result = schema.safeParse(req.body);
 
         if (!result.success) {
-            return res.status(400).json({
-                success: false,
-                message: "Validation failed",
-                errors: result.error.flatten()
-            });
+            const details = result.error.issues.map((issue) => ({
+                field: issue.path.join(".") || "body",
+                message: issue.message
+            }));
+
+            return next(
+                new ValidationError(
+                    "Request validation failed",
+                    details
+                )
+            );
         }
 
-        req.validated = {
-            ...(req.validated || {}),
-            [source]: result.data
-        };
-
+        req.validatedBody = result.data;
         next();
     };
 };

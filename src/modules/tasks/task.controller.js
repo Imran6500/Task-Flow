@@ -1,4 +1,5 @@
 const taskService = require("./task.service");
+const ApiResponse = require("../../utils/ApiResponse");
 
 const createTask = async (req, res) => {
     const task = await taskService.createTask(
@@ -7,10 +8,9 @@ const createTask = async (req, res) => {
         req.validatedBody
     );
 
-    return res.status(201).json({
-        success: true,
-        message: "Task created successfully",
-        data: task
+    return ApiResponse.success(res,{
+        message:"Task created successfully",
+        data:task
     });
 };
 
@@ -21,11 +21,11 @@ const getTasksByProject = async (req, res) => {
         req.validatedQuery
     );
 
-    return res.status(200).json({
-        success: true,
-        data: result.tasks,
-        pagination: result.pagination
-    });
+    return ApiResponse.success(res,{
+        message:"Task fetched successfully",
+        data:result.tasks,
+        meta:result.pagination
+    })
 };
 
 const updateTask = async (req, res) => {
@@ -36,11 +36,11 @@ const updateTask = async (req, res) => {
         req.validatedBody
     );
 
-    return res.status(200).json({
-        success: true,
-        message: "Task updated successfully",
-        data: task
-    });
+   return ApiResponse.success(res,{
+    message:"Task updated successfully",
+    data:task,
+
+   });
 };
 
 const deleteTask = async (req, res) => {
@@ -50,10 +50,9 @@ const deleteTask = async (req, res) => {
         req.params.taskId
     );
 
-    return res.status(200).json({
-        success: true,
-        message: "Task deleted successfully"
-    });
+   return ApiResponse.success(res,{
+    message: "Task deleted successfully"
+   });
 };
 
 module.exports = {
