@@ -1,3 +1,4 @@
+
 class ApiResponse {
     static success(res, {
         statusCode = 200,
@@ -7,9 +8,12 @@ class ApiResponse {
     } = {}) {
         const response = {
             success: true,
-            message,
-            data
+            message
         };
+
+        if (data !== null && data !== undefined) {
+            response.data = data;
+        }
 
         if (meta !== undefined) {
             response.meta = meta;

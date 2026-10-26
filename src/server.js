@@ -15,9 +15,6 @@ const SHUTDOWN_TIMEOUT_MS = 10000;
 const startServer = async () => {
     try {
         await connectDB();
-
-        logger.info("MongoDB connected successfully");
-
         server = app.listen(env.PORT, () => {
             logger.info(
                 { port: env.PORT },

@@ -3,7 +3,6 @@ const { rateLimit } = require("express-rate-limit");
 const { AppError } = require("../utils/AppError");
 const env = require("../config/env");
 
-const isTest = env.NODE_ENV === "test";
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -12,7 +11,6 @@ const authLimiter = rateLimit({
     standardHeaders: "draft-8",
     legacyHeaders: false,
 
-    skip: () => isTest,
 
     handler: (req, res, next) => {
         next(
@@ -32,7 +30,6 @@ const apiLimiter = rateLimit({
     standardHeaders: "draft-8",
     legacyHeaders: false,
 
-    skip: () => isTest,
 
     handler: (req, res, next) => {
         next(
