@@ -1,8 +1,12 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 
 const { NotFoundError } = require("./utils/AppError");
+
+// const { connectRedis, redisClient } = require("./config/redis");
 
 // Import routes
 const authRoutes = require("./modules/auth/auth.routes");
@@ -59,6 +63,34 @@ app.use(
     taskRoutes
 );
 
+const { redisClient } = require("./config/redis");
+
+app.get("/api/v1/cache-demo", async (req, res, next) => {
+  try {
+    const key = "demo:message";
+
+    const cached = await redisClient.get(key);
+
+    if (cached !== null) {
+      return res.json({
+        source: "redis",
+        message: cached,
+      });
+    }
+
+    const message = "Hello from Express!";
+
+    await redisClient.set(key, message, { EX: 60 });
+
+    return res.json({
+      source: "generated",
+      message,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ================================
 // 404 ROUTE HANDLER
 // ================================
@@ -78,6 +110,7 @@ app.use(errorHandler);
 // ================================
 // Must be registered after all routes.
 app.use(errorHandler);
+
 
 // Export Express app
 module.exports = app;

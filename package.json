@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
-   
   },
   "keywords": [],
   "author": "",
@@ -23,6 +22,7 @@
     "mongoose": "^9.11.0",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
+    "redis": "^6.3.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
